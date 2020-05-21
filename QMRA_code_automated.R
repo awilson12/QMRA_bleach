@@ -38,12 +38,13 @@ COVIDqmra<-function(disinfection=c(TRUE),iter,RNAinfective){
                                  #fingertip to multiple fingertips
  
  #estimating virus transfer to hand for hand-to-surface contact
- conchand<-concsurf*TE*SH
+ conchand<-concsurf*TE.SH*SH
  
  #estimating dose for hand-to-mouth contact
  dose<-conchand*TE.HM*Ahand*SH.mouth
  
  #initialize vector for storing infection risks
+ infect<-rep(NA,iter)
  
  for (i in 1:iter){
    pair<-sample(c(1:length(exactbp$ln.alpha.)),1)
@@ -68,6 +69,8 @@ SIM <- c("lowinfect_nodisinfect","highinfect_nodisinfect",
          "lowinfect_disinfect","highinfect_disinfect")   
 
 NUM.SIM <- length(SIM)     # Count the number of iterations for the automated simulations
+
+iter<-1000
 
 for(j in 1:NUM.SIM)
   
@@ -113,7 +116,7 @@ for(j in 1:NUM.SIM)
     
     }
   
-  COVIDqmra(disinfection=disinfection,RNAinfective = RNAinfect)
+  COVIDqmra(disinfection=disinfection,RNAinfective = RNAinfect,iter=iter)
   
   write.csv(sim.frame,file=sprintf("%s.sim.frame.csv",sim.name))
   
