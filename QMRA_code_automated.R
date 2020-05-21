@@ -13,6 +13,8 @@ setwd(this.dir)
 if("gsl" %in% rownames(installed.packages())==FALSE){install.packages("gsl"); require(gsl)}else{require(gsl)}
 if("ggplot2" %in% rownames(installed.packages())==FALSE){install.packages("ggplot2"); require(ggplot2)}else{require(ggplot2)}
 if("ggpubr" %in% rownames(installed.packages())==FALSE){install.packages("ggpubr"); require(ggpubr)}else{require(ggpubr)}
+if("reshape2" %in% rownames(installed.packages())==FALSE){install.packages("reshape2"); require(reshape2)}else{require(reshape2)}
+
 
 #read in bootstrapped values for dose-response
 exactbp<-read.csv('Exact_BetaPoisson_Bootstrap.csv')
@@ -123,6 +125,20 @@ for(j in 1:NUM.SIM)
   #reset directory to parent folder so we can go to correct subfolder within parent folder for next sim run
   setwd(this.dir)
   
+  if (j==1){
+   sim.frame.all<-sim.frame
+  }else{
+    sim.frame.all<-rbind(sim.frame.all,sim.frame)
+  }
+  
 }
 
+
+framecor = sim.frame.all
+
+cormat<-round(cor(framecor,method=c("spearman")),2)
+melted_cormat<-melt(cormat)
+ggplot(data=melted_cormat,aes(x=Var1,y=Var2,fill=value))+geom_tile()+
+  geom_text(aes(label = round(value, 2))) +
+  scale_fill_gradient(low = "white", high = "blue") 
 
