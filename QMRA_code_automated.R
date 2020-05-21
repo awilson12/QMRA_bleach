@@ -18,7 +18,7 @@ if("ggpubr" %in% rownames(installed.packages())==FALSE){install.packages("ggpubr
 exactbp<-read.csv('Exact_BetaPoisson_Bootstrap.csv')
 
 
-COVIDqmra<-function(disinfection=c(TRUE),iter){
+COVIDqmra<-function(disinfection=c(TRUE),iter,RNAinfective){
   
   if (disinfection==TRUE){
     #log10 reduction expected
@@ -28,7 +28,7 @@ COVIDqmra<-function(disinfection=c(TRUE),iter){
     reduce<-rep(0,iter)
   }
   
- concsurf<-10^runif(iter,-0.1,4) #place holder distribution for surface concentrations
+ concsurf<-10^runif(iter,-0.1,4)*RNAinfective #place holder distribution for surface concentrations
  TE.SH<-runif(iter,0,1) #place holder transfer efficiencies (surface-->hand)
  SH<-runif(iter,0,1) #place holder fraction of total hand surface area used
  
@@ -56,7 +56,69 @@ COVIDqmra<-function(disinfection=c(TRUE),iter){
  }
  
  sim.frame<-data.frame(infect=infect,dose=dose,conchand=conchand,TE.HM=TE.HM,Ahand=Ahand,
-                       SH.mouth=SH.mouth,SH=SH,TE.SH=TE.SH,concsurf=concsurf,)
+                       SH.mouth=SH.mouth,SH=SH,TE.SH=TE.SH,concsurf=concsurf,RNAinfective=rep(RNAinfective,iter),
+                       disinfect=rep(disinfection,iter))
+ 
+ sim.frame<<-sim.frame
+}
+
+#-----------------automated run of sim function for scenarios-----------------------------------
+
+SIM <- c("lowinfect_nodisinfect","highinfect_nodisinfect",
+         "lowinfect_disinfect","highinfect_disinfect")   
+
+NUM.SIM <- length(SIM)     # Count the number of iterations for the automated simulations
+
+for(j in 1:NUM.SIM)
+  
+{
+  sim.num <- j; sim.name <- SIM[j]
+  
+  if(sim.name=="lowinfect_nodisinfect"){
+    if(dir.exists("lowinfect_nodisinfect")==FALSE)
+    {dir.create("lowinfect_nodisinfect"); setwd("lowinfect_nodisinfect")}
+    else{setwd("lowinfect_nodisinfect")}
+    
+    RNAinfect<-0.01
+    disinfection<-c(FALSE)
+    
+    }
+  
+  if(sim.name=="highinfect_nodisinfect"){
+    if(dir.exists("highinfect_nodisinfect")==FALSE)
+    {dir.create("highinfect_nodisinfect"); setwd("highinfect_nodisinfect")}
+    else{setwd("highinfect_nodisinfect")}
+    
+    RNAinfect<-0.1
+    disinfection<-c(FALSE)
+    
+    }
+  
+  if(sim.name=="lowinfect_disinfect"){
+    if(dir.exists("lowinfect_disinfect")==FALSE)
+    {dir.create("lowinfect_disinfect"); setwd("lowinfect_disinfect")}
+    else{setwd("lowinfect_disinfect")}
+    
+    RNAinfect<-0.01
+    disinfection<-c(TRUE)
+    
+    }
+  if(sim.name=="highinfect_disinfect"){
+    if(dir.exists("highinfect_disinfect")==FALSE)
+    {dir.create("highinfect_disinfect"); setwd("highinfect_disinfect")}
+    else{setwd("highinfect_disinfect")}
+    
+    RNAinfect<-0.1
+    disinfection<-c(TRUE)
+    
+    }
+  
+  COVIDqmra(disinfection=disinfection,RNAinfective = RNAinfect)
+  
+  write.csv(sim.frame,file=sprintf("%s.sim.frame.csv",sim.name))
+  
+  #reset directory to parent folder so we can go to correct subfolder within parent folder for next sim run
+  setwd(this.dir)
   
 }
 
