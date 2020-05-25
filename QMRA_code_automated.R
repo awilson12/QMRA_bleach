@@ -47,11 +47,15 @@ COVIDqmra<-function(disinfection=c(TRUE),iter,RNAinfective){
  
  #initialize vector for storing infection risks
  infect<-rep(NA,iter)
+ alpha<-rep(NA,iter)
+ beta<-rep(NA,iter)
  
  for (i in 1:iter){
    pair<-sample(c(1:length(exactbp$ln.alpha.)),1)
    infect[i]<-1-hyperg_1F1(exactbp$alpha[pair], exactbp$alpha[pair]+exactbp$Beta[pair], -dose[i], give=FALSE, strict=TRUE)
-   
+   alpha[i]<-exactbp$alpha[pair]
+   beta[i]<-exactbp$Beta[pair]
+     
    if(infect[i]==0){
      infect[i]<-1*10^-15 #cannot have zero infection risk, so replace with small risk
      
@@ -60,7 +64,7 @@ COVIDqmra<-function(disinfection=c(TRUE),iter,RNAinfective){
  
  sim.frame<-data.frame(infect=infect,dose=dose,conchand=conchand,TE.HM=TE.HM,Ahand=Ahand,
                        SH.mouth=SH.mouth,SH=SH,TE.SH=TE.SH,concsurf=concsurf,RNAinfective=rep(RNAinfective,iter),
-                       disinfect=rep(disinfection,iter),reduce=reduce)
+                       disinfect=rep(disinfection,iter),reduce=reduce,alpha=alpha,beta=beta)
  
  sim.frame<<-sim.frame
 }
@@ -151,7 +155,7 @@ ggplot(sim.frame.all)+stat_ecdf(aes(x=infect,group=interaction(disinfect,concens
   scale_colour_discrete(name="",labels=c("Surfaces Not Disinfected","Surfaces Disinfected"))+
   scale_linetype_discrete(name="",labels=c(expression(">= 1 viral particle/cm"^2),expression("<1 viral particle/cm"^2)))+
   scale_y_continuous(name="Fraction of Data")+
-  theme_pubr()+theme(legend.position = "right")+
+  theme_pubr()+theme(legend.position = "right")
   #geom_vline(xintercept=1e-4)+
   #geom_vline(xintercept=1e-6)
 
