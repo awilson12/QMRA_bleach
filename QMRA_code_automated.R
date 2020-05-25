@@ -146,9 +146,28 @@ sim.frame.all$concenstatus<-rep(NA,length(sim.frame.all$infect))
 sim.frame.all$concenstatus[sim.frame.all$concsurf<1]<-"low"
 sim.frame.all$concenstatus[sim.frame.all$concsurf>=1]<-"high"
 
-ggplot(sim.frame.all)+stat_ecdf(aes(x=infect,group=interaction(disinfect,concenstatus),colour=disinfect,linetype=concenstatus),size=1.5)+
+ggplot(sim.frame.all)+stat_ecdf(aes(x=infect,group=interaction(disinfect,concenstatus),colour=disinfect,linetype=concenstatus),size=1)+
   scale_x_continuous(trans="log10",name="Infection Risk")+
   scale_colour_discrete(name="",labels=c("Surfaces Not Disinfected","Surfaces Disinfected"))+
   scale_linetype_discrete(name="",labels=c(expression(">= 1 viral particle/cm"^2),expression("<1 viral particle/cm"^2)))+
   scale_y_continuous(name="Fraction of Data")+
-  theme_pubr()+theme(legend.position = "right")
+  theme_pubr()+theme(legend.position = "right")+
+  #geom_vline(xintercept=1e-4)+
+  #geom_vline(xintercept=1e-6)
+
+A<-ggplot(sim.frame.all[sim.frame.all$reduce>0,])+geom_point(aes(x=concsurf,y=infect,colour=reduce))+
+  scale_y_continuous(trans="log10",name="Infection Risk")+
+  scale_colour_continuous(name=expression("log"[10]*phantom(x)*"reduction"))+
+  scale_x_continuous(trans="log10",name=expression("Surface Concentration (viral particles/cm"^2*")"))+
+  geom_hline(yintercept=1e-4,linetype="dashed",colour="red",size=1.5)+
+  theme_pubr()+ggtitle("1/10,000 Risk Target")
+
+B<-ggplot(sim.frame.all[sim.frame.all$reduce>0,])+geom_point(aes(x=concsurf,y=infect,colour=reduce))+
+  scale_y_continuous(trans="log10",name="Infection Risk")+
+  scale_colour_continuous(name=expression("log"[10]*phantom(x)*"reduction"))+
+  scale_x_continuous(trans="log10",name=expression("Surface Concentration (viral particles/cm"^2*")"))+
+  geom_hline(yintercept=1e-6,linetype="dashed",colour="red",size=1.5)+
+  theme_pubr()+ggtitle("1/1,000,000 Risk Target")
+
+windows()
+ggarrange(A,B,common.legend = TRUE)
