@@ -24,7 +24,7 @@ COVIDqmra<-function(disinfection=c(TRUE),iter,RNAinfective){
   
   if (disinfection==TRUE){
     #log10 reduction expected
-    runif(iter,1,5) #explore a wide range for now to see how this affects infection risk
+    reduce<-runif(iter,1,5) #explore a wide range for now to see how this affects infection risk
   }else{
     #this is a baseline scenario, so no disinfection, therefore 0 reduction
     reduce<-rep(0,iter)
@@ -40,7 +40,7 @@ COVIDqmra<-function(disinfection=c(TRUE),iter,RNAinfective){
                                  #fingertip to multiple fingertips
  
  #estimating virus transfer to hand for hand-to-surface contact
- conchand<-concsurf*TE.SH*SH
+ conchand<-(concsurf*TE.SH*SH)/10^reduce
  
  #estimating dose for hand-to-mouth contact
  dose<-conchand*TE.HM*Ahand*SH.mouth
@@ -60,7 +60,7 @@ COVIDqmra<-function(disinfection=c(TRUE),iter,RNAinfective){
  
  sim.frame<-data.frame(infect=infect,dose=dose,conchand=conchand,TE.HM=TE.HM,Ahand=Ahand,
                        SH.mouth=SH.mouth,SH=SH,TE.SH=TE.SH,concsurf=concsurf,RNAinfective=rep(RNAinfective,iter),
-                       disinfect=rep(disinfection,iter))
+                       disinfect=rep(disinfection,iter),reduce=reduce)
  
  sim.frame<<-sim.frame
 }
@@ -142,3 +142,13 @@ ggplot(data=melted_cormat,aes(x=Var1,y=Var2,fill=value))+geom_tile()+
   geom_text(aes(label = round(value, 2))) +
   scale_fill_gradient(low = "white", high = "blue") 
 
+sim.frame.all$concenstatus<-rep(NA,length(sim.frame.all$infect))
+sim.frame.all$concenstatus[sim.frame.all$concsurf<1]<-"low"
+sim.frame.all$concenstatus[sim.frame.all$concsurf>=1]<-"high"
+
+ggplot(sim.frame.all)+stat_ecdf(aes(x=infect,group=interaction(disinfect,concenstatus),colour=disinfect,linetype=concenstatus),size=1.5)+
+  scale_x_continuous(trans="log10",name="Infection Risk")+
+  scale_colour_discrete(name="",labels=c("Surfaces Not Disinfected","Surfaces Disinfected"))+
+  scale_linetype_discrete(name="",labels=c(expression(">= 1 viral particle/cm"^2),expression("<1 viral particle/cm"^2)))+
+  scale_y_continuous(name="Fraction of Data")+
+  theme_pubr()+theme(legend.position = "right")
