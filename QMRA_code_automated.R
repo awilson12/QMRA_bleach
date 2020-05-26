@@ -9,7 +9,7 @@ this.dir <- dirname(parent.frame(2)$ofile)
 setwd(this.dir)    
 
 #install required packages if not already installed
-
+if("truncdist" %in% rownames(installed.packages())==FALSE){install.packages("truncdist"); require(truncdist)}else{require(truncdist)}
 if("gsl" %in% rownames(installed.packages())==FALSE){install.packages("gsl"); require(gsl)}else{require(gsl)}
 if("ggplot2" %in% rownames(installed.packages())==FALSE){install.packages("ggplot2"); require(ggplot2)}else{require(ggplot2)}
 if("ggpubr" %in% rownames(installed.packages())==FALSE){install.packages("ggpubr"); require(ggpubr)}else{require(ggpubr)}
@@ -31,12 +31,12 @@ COVIDqmra<-function(disinfection=c(TRUE),iter,RNAinfective){
   }
   
  concsurf<-10^runif(iter,-0.1,4)*RNAinfective #place holder distribution for surface concentrations
- TE.SH<-runif(iter,0,1) #place holder transfer efficiencies (surface-->hand)
- SH<-runif(iter,0,1) #place holder fraction of total hand surface area used
+ TE.SH<-runif(iter,0.01,0.406) #place holder transfer efficiencies (surface-->hand)
+ SH<-runif(iter,0.01,0.25) #place holder fraction of total hand surface area used
  
- TE.HM<-runif(iter,0,1) #place holder transfer efficiencies (hand-->mouth)
+ TE.HM<-rtrunc(iter,"norm",a=0,b=1,mean=0.3390,sd=0.15)
  Ahand<-runif(iter,445,535) #hand surface areas (Beamer et al., 2015 office study and Exposure Factors Handbook)
- SH.mouth<-runif(iter,0.01,0.04) #place holder fraction of hand used for hand-to-mouth contact but approximately single 
+ SH.mouth<-runif(iter,0.008,0.012) #place holder fraction of hand used for hand-to-mouth contact but approximately single 
                                  #fingertip to multiple fingertips
  
  #estimating virus transfer to hand for hand-to-surface contact
