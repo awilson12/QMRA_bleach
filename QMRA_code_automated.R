@@ -153,14 +153,52 @@ sim.frame.all$RNAinfective[sim.frame.all$RNAinfective==0.01]<-"1% Infective"
 sim.frame.all$RNAinfective[sim.frame.all$RNAinfective==0.1]<-"10% Infective"
 
 
+sim.frame.all$reductionrange<-rep(NA,length(sim.frame.all$infect))
+sim.frame.all$reductionrange[sim.frame.all$reduce==0]<-"0"
+sim.frame.all$reductionrange[sim.frame.all$reduce>0 & sim.frame.all$reduce<=1]<-"0-1"
+sim.frame.all$reductionrange[sim.frame.all$reduce>1 & sim.frame.all$reduce<=2]<-"1-2"
+sim.frame.all$reductionrange[sim.frame.all$reduce>2 & sim.frame.all$reduce<=3]<-"2-3"
+sim.frame.all$reductionrange[sim.frame.all$reduce>3 & sim.frame.all$reduce<=4]<-"3-4"
+sim.frame.all$reductionrange[sim.frame.all$reduce>4 & sim.frame.all$reduce<=5]<-"4-5"
+
+
+#---- plots for brief note -------------------
+
+windows()
+ggplot(sim.frame.all)+geom_boxplot(aes(x=reductionrange,y=infect,group=interaction(concenstatus,reductionrange),fill=concenstatus))+
+  facet_wrap(~RNAinfective)+
+  scale_y_continuous(trans="log10",name="Infection Risk")+
+  scale_x_discrete(name=expression("Log"[10]*phantom(x)*"Reduction"))+
+  scale_fill_grey(name="Contamination",labels=c(expression(phantom(x)>="1 RNA/cm"^2),expression("< 1 RNA/cm"^2)),start=0.4,end=.8)+
+  geom_hline(yintercept = 1e-4,linetype="dashed",size=1,colour="red")+
+  geom_hline(yintercept = 1e-6,linetype="dashed",size=1,colour="orange")+
+  theme_pubr()+theme_bw()+theme(axis.text=element_text(size=12),axis.title=element_text(size=14),
+                                strip.text=element_text(size=12),
+                                legend.text=element_text(size=12),
+                                axis.text.x = element_text(angle = 45))
+
+windows()
+ggplot(sim.frame.all)+geom_boxplot(aes(x=concenstatus,y=infect,group=interaction(concenstatus,disinfect),fill=disinfect))+
+  facet_wrap(~RNAinfective)+
+  scale_y_continuous(trans="log10",name="Infection Risk")+
+  scale_x_discrete(name="Contamination",labels=c(expression(phantom(x)>="1 RNA/cm"^2),expression("< 1 RNA/cm"^2)))+
+  scale_fill_grey(name="",labels=c("No disinfection","Disinfection"),start=0.4,end=.8)+
+  geom_hline(yintercept = 1e-4,linetype="dashed",size=1,colour="red")+
+  geom_hline(yintercept = 1e-6,linetype="dashed",size=1,colour="orange")+
+  theme_pubr()+theme_bw()+theme(axis.text=element_text(size=12),axis.title=element_text(size=14),
+                                strip.text=element_text(size=12),
+                                legend.text=element_text(size=12))
+
+#---- exploratory plots-------------------
+
 ggplot(sim.frame.all)+stat_ecdf(aes(x=infect,group=interaction(disinfect,concenstatus),colour=disinfect,linetype=concenstatus),size=1)+
   scale_x_continuous(trans="log10",name="Infection Risk")+
   scale_colour_discrete(name="",labels=c("Surfaces Not Disinfected","Surfaces Disinfected"))+
   scale_linetype_discrete(name="",labels=c(expression(">= 1 viral particle/cm"^2),expression("<1 viral particle/cm"^2)))+
   scale_y_continuous(name="Fraction of Data")+
   theme_pubr()+theme(legend.position = "right")
-  #geom_vline(xintercept=1e-4)+
-  #geom_vline(xintercept=1e-6)
+#geom_vline(xintercept=1e-4)+
+#geom_vline(xintercept=1e-6)
 
 A<-ggplot(sim.frame.all[sim.frame.all$reduce>0,])+geom_point(aes(x=concsurf,y=infect,colour=reduce))+
   scale_y_continuous(trans="log10",name="Infection Risk")+
@@ -177,15 +215,3 @@ B<-ggplot(sim.frame.all[sim.frame.all$reduce>0,])+geom_point(aes(x=concsurf,y=in
   theme_pubr()+ggtitle("1/1,000,000 Risk Target")
 
 ggarrange(A,B,common.legend = TRUE)
-
-windows()
-ggplot(sim.frame.all)+geom_boxplot(aes(x=concenstatus,y=infect,group=interaction(concenstatus,disinfect),fill=disinfect))+
-  facet_wrap(~RNAinfective)+
-  scale_y_continuous(trans="log10",name="Infection Risk")+
-  scale_x_discrete(name="Contamination",labels=c(expression(phantom(x)>="1 RNA/cm"^2),expression("< 1 RNA/cm"^2)))+
-  scale_fill_grey(name="",labels=c("No disinfection","Disinfection"),start=0.4,end=.8)+
-  geom_hline(yintercept = 1e-4,linetype="dashed",size=1,colour="red")+
-  geom_hline(yintercept = 1e-6,linetype="dashed",size=1,colour="orange")+
-  theme_pubr()+theme_bw()+theme(axis.text=element_text(size=12),axis.title=element_text(size=14),
-                                strip.text=element_text(size=12),
-                                legend.text=element_text(size=12))
