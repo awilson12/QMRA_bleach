@@ -139,11 +139,14 @@ for(j in 1:NUM.SIM)
 
 framecor = sim.frame.all
 
-cormat<-round(cor(framecor,method=c("spearman")),2)
+cor(sim.frame.all$infect,sim.frame.all$Ahand,method=c("spearman"))
+
+cormat<-cor(framecor,method=c("spearman"))
 melted_cormat<-melt(cormat)
 ggplot(data=melted_cormat,aes(x=Var1,y=Var2,fill=value))+geom_tile()+
-  geom_text(aes(label = round(value, 2))) +
+  geom_text(aes(label = signif(value, 2))) +
   scale_fill_gradient(low = "white", high = "blue") 
+
 
 sim.frame.all$concenstatus<-rep(NA,length(sim.frame.all$infect))
 sim.frame.all$concenstatus[sim.frame.all$concsurf<1]<-"low"
