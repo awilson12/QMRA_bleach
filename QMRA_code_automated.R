@@ -75,7 +75,7 @@ SIM <- c("lowinfect_nodisinfect","highinfect_nodisinfect",
 
 NUM.SIM <- length(SIM)     # Count the number of iterations for the automated simulations
 
-iter<-1000
+iter<-10000
 
 for(j in 1:NUM.SIM)
   
@@ -173,12 +173,13 @@ ggplot(sim.frame.all)+geom_boxplot(aes(x=reductionrange,y=infect,group=interacti
   scale_y_continuous(trans="log10",name="Infection Risk")+
   scale_x_discrete(name=expression("Log"[10]*phantom(x)*"Reduction"))+
   scale_fill_grey(name="Contamination",labels=c(expression(phantom(x)>="1 RNA/cm"^2),expression("< 1 RNA/cm"^2)),start=0.4,end=.8)+
-  geom_hline(yintercept = 1e-4,linetype="dashed",size=1,colour="red")+
-  geom_hline(yintercept = 1e-6,linetype="dashed",size=1,colour="orange")+
-  theme_pubr()+theme_bw()+theme(axis.text=element_text(size=12),axis.title=element_text(size=14),
-                                strip.text=element_text(size=12),
-                                legend.text=element_text(size=12),
-                                axis.text.x = element_text(angle = 45))
+  geom_hline(yintercept = 1e-4,linetype="dashed",size=1.5,colour="red")+
+  geom_hline(yintercept = 1e-6,linetype="dashed",size=1.5,colour="orange")+
+  theme_pubr()+theme_bw()+theme(axis.text=element_text(size=14),axis.title=element_text(size=14),
+                                strip.text=element_text(size=14),
+                                legend.text=element_text(size=14),
+                                axis.text.x = element_text(angle = 45),
+                                legend.title=element_text(size=14))
 
 windows()
 ggplot(sim.frame.all)+geom_boxplot(aes(x=concenstatus,y=infect,group=interaction(concenstatus,disinfect),fill=disinfect))+
@@ -186,11 +187,12 @@ ggplot(sim.frame.all)+geom_boxplot(aes(x=concenstatus,y=infect,group=interaction
   scale_y_continuous(trans="log10",name="Infection Risk")+
   scale_x_discrete(name="Contamination",labels=c(expression(phantom(x)>="1 RNA/cm"^2),expression("< 1 RNA/cm"^2)))+
   scale_fill_grey(name="",labels=c("No disinfection","Disinfection"),start=0.4,end=.8)+
-  geom_hline(yintercept = 1e-4,linetype="dashed",size=1,colour="red")+
-  geom_hline(yintercept = 1e-6,linetype="dashed",size=1,colour="orange")+
-  theme_pubr()+theme_bw()+theme(axis.text=element_text(size=12),axis.title=element_text(size=14),
-                                strip.text=element_text(size=12),
-                                legend.text=element_text(size=12))
+  geom_hline(yintercept = 1e-4,linetype="dashed",size=1.5,colour="red")+
+  geom_hline(yintercept = 1e-6,linetype="dashed",size=1.5,colour="orange")+
+  theme_pubr()+theme_bw()+theme(axis.text=element_text(size=14),axis.title=element_text(size=14),
+                                strip.text=element_text(size=14),
+                                legend.text=element_text(size=14),
+                                legend.title=element_text(size=14))
 
 #---- exploratory plots-------------------
 
