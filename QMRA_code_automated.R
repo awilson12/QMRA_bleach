@@ -30,17 +30,24 @@ COVIDqmra<-function(disinfection=c(TRUE),iter,RNAinfective){
     reduce<-rep(0,iter)
   }
   
- concsurf<-10^runif(iter,-0.1,4)*RNAinfective #place holder distribution for surface concentrations
- TE.SH<-runif(iter,0.01,0.406) #place holder transfer efficiencies (surface-->hand)
- SH<-runif(iter,0.01,0.25) #place holder fraction of total hand surface area used
- 
- TE.HM<-rtrunc(iter,"norm",a=0,b=1,mean=0.3390,sd=0.15)
- Ahand<-runif(iter,445,535) #hand surface areas (Beamer et al., 2015 office study and Exposure Factors Handbook)
- SH.mouth<-runif(iter,0.008,0.012) #place holder fraction of hand used for hand-to-mouth contact but approximately single 
-                                 #fingertip to multiple fingertips
- 
- #estimating virus transfer to hand for hand-to-surface contact
- conchand<-(concsurf*TE.SH*SH)/10^reduce
+  
+  TE.SH<-runif(iter,0.01,0.406) #place holder transfer efficiencies (surface-->hand)
+  SH<-runif(iter,0.01,0.25) #place holder fraction of total hand surface area used
+  
+  TE.HM<-rtrunc(iter,"norm",a=0,b=1,mean=0.3390,sd=0.15)
+  Ahand<-runif(iter,445,535) #hand surface areas (Beamer et al., 2015 office study and Exposure Factors Handbook)
+  SH.mouth<-runif(iter,0.008,0.012) #place holder fraction of hand used for hand-to-mouth contact but approximately single 
+  #fingertip to multiple fingertips
+  
+  A.fomite<-runif(iter,15,150)*929 #range from small to large room total amount of SA that desks account for, for example (in cm^2)
+  #in ft^2 and converting to cm^2. Assuming 50% capacity of small classroom (10 seats) and large classroom (100 seats) with 3 ft^2 per person
+  
+  #what is accrued on hands (don't care about loss)
+  concsurfstart<-(10^runif(iter,-1,4))
+  
+  concsurf<-((concsurfstart*SH*Ahand*RNAinfective)/A.fomite)/(10^reduce)
+  
+  conchand<-concsurf*TE.SH
  
  #estimating dose for hand-to-mouth contact
  dose<-conchand*TE.HM*Ahand*SH.mouth
@@ -61,8 +68,8 @@ COVIDqmra<-function(disinfection=c(TRUE),iter,RNAinfective){
     }
  }
  
- sim.frame<-data.frame(infect=infect,dose=dose,conchand=conchand,TE.HM=TE.HM,Ahand=Ahand,
-                       SH.mouth=SH.mouth,SH=SH,TE.SH=TE.SH,concsurf=concsurf,RNAinfective=rep(RNAinfective,iter),
+ sim.frame<-data.frame(infect=infect,dose=dose,conchand=conchand,concsurfstart=concsurfstart,concsurf=concsurf,TE.HM=TE.HM,Ahand=Ahand,
+                       SH.mouth=SH.mouth,SH=SH,TE.SH=TE.SH,RNAinfective=rep(RNAinfective,iter),
                        disinfect=rep(disinfection,iter),reduce=reduce,alpha=alpha,beta=beta)
  
  sim.frame<<-sim.frame
@@ -149,8 +156,8 @@ ggplot(data=melted_cormat,aes(x=Var1,y=Var2,fill=value))+geom_tile()+
 
 
 sim.frame.all$concenstatus<-rep(NA,length(sim.frame.all$infect))
-sim.frame.all$concenstatus[sim.frame.all$concsurf<1]<-"low"
-sim.frame.all$concenstatus[sim.frame.all$concsurf>=1]<-"high"
+sim.frame.all$concenstatus[sim.frame.all$concsurfstart<1]<-"low"
+sim.frame.all$concenstatus[sim.frame.all$concsurfstart>=1]<-"high"
 
 sim.frame.all$RNAinfective[sim.frame.all$RNAinfective==0.01]<-"1% Infective"
 sim.frame.all$RNAinfective[sim.frame.all$RNAinfective==0.1]<-"10% Infective"
@@ -172,7 +179,7 @@ ggplot(sim.frame.all)+geom_boxplot(aes(x=reductionrange,y=infect,group=interacti
   facet_wrap(~RNAinfective)+
   scale_y_continuous(trans="log10",name="Infection Risk")+
   scale_x_discrete(name=expression("Log"[10]*phantom(x)*"Reduction"))+
-  scale_fill_grey(name="Contamination",labels=c(expression(phantom(x)>="1 RNA/cm"^2),expression("< 1 RNA/cm"^2)),start=0.4,end=.8)+
+  scale_fill_grey(name="Contamination",labels=c(expression(phantom(x)>="1 gc/cm"^2),expression("< 1 gc/cm"^2)),start=0.4,end=.8)+
   geom_hline(yintercept = 1e-4,linetype="dashed",size=1.5,colour="red")+
   geom_hline(yintercept = 1e-6,linetype="dashed",size=1.5,colour="orange")+
   theme_pubr()+theme_bw()+theme(axis.text=element_text(size=14),axis.title=element_text(size=14),
@@ -185,7 +192,7 @@ windows()
 ggplot(sim.frame.all)+geom_boxplot(aes(x=concenstatus,y=infect,group=interaction(concenstatus,disinfect),fill=disinfect))+
   facet_wrap(~RNAinfective)+
   scale_y_continuous(trans="log10",name="Infection Risk")+
-  scale_x_discrete(name="Contamination",labels=c(expression(phantom(x)>="1 RNA/cm"^2),expression("< 1 RNA/cm"^2)))+
+  scale_x_discrete(name="Contamination",labels=c(expression(phantom(x)>="1 gc/cm"^2),expression("< 1 gc/cm"^2)))+
   scale_fill_grey(name="",labels=c("No disinfection","Disinfection"),start=0.4,end=.8)+
   geom_hline(yintercept = 1e-4,linetype="dashed",size=1.5,colour="red")+
   geom_hline(yintercept = 1e-6,linetype="dashed",size=1.5,colour="orange")+
@@ -219,4 +226,5 @@ B<-ggplot(sim.frame.all[sim.frame.all$reduce>0,])+geom_point(aes(x=concsurf,y=in
   geom_hline(yintercept=1e-6,linetype="dashed",colour="red",size=1.5)+
   theme_pubr()+ggtitle("1/1,000,000 Risk Target")
 
+windows()
 ggarrange(A,B,common.legend = TRUE)
