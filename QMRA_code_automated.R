@@ -37,38 +37,48 @@ COVIDqmra<-function(disinfection=c(TRUE),iter,RNAinfective){
   
   TE.HM<-rtrunc(iter,"norm",a=0,b=1,mean=0.3390,sd=0.15)
   Ahand<-runif(iter,445,535) #hand surface areas (Beamer et al., 2015 office study and Exposure Factors Handbook)
-  SH.mouth<-runif(iter,0.008,0.012) #place holder fraction of hand used for hand-to-mouth contact but approximately single 
-  #fingertip to multiple fingertips
+  SH.mouth<-runif(iter,0.008,0.012) 
   
   A.fomite<-runif(iter,15,150)*929 #range from small to large room total amount of SA that desks account for, for example (in cm^2)
   #in ft^2 and converting to cm^2. Assuming 50% capacity of small classroom (10 seats) and large classroom (100 seats) with 3 ft^2 per person
   
-  #what is accrued on hands (don't care about loss)
+  #concentration on surface in area we're contacting in gc/cm^2
   concsurfstart<-(10^runif(iter,-1,4))
   
+  #adjustment after we account for fraction of our hand in contact, the fraction of virus that's infective,
+  #the total area of fomites available for contact, and the log10 reduction if disinfection was used
   concsurf<-((concsurfstart*SH*Ahand*RNAinfective)/A.fomite)/(10^reduce)
   
+  #concentration on our hand due to transfer efficiency
   conchand<-concsurf*TE.SH
  
- #estimating dose for hand-to-mouth contact
- dose<-conchand*TE.HM*Ahand*SH.mouth
+  #estimating dose for hand-to-mouth contact
+  dose<-conchand*TE.HM*Ahand*SH.mouth
  
- #initialize vector for storing infection risks
- infect<-rep(NA,iter)
- alpha<-rep(NA,iter)
- beta<-rep(NA,iter)
+  #initialize vector for storing infection risks
+  infect<-rep(NA,iter)
+  alpha<-rep(NA,iter)
+  beta<-rep(NA,iter)
  
- for (i in 1:iter){
-   pair<-sample(c(1:length(exactbp$ln.alpha.)),1)
-   infect[i]<-1-hyperg_1F1(exactbp$alpha[pair], exactbp$alpha[pair]+exactbp$Beta[pair], -dose[i], give=FALSE, strict=TRUE)
-   alpha[i]<-exactbp$alpha[pair]
-   beta[i]<-exactbp$Beta[pair]
-     
-   if(infect[i]==0){
-     infect[i]<-1*10^-15 #cannot have zero infection risk, so replace with small risk
+  #infection risk estimate with randomly sampled pair of alpha and beta
+  for (i in 1:iter){
+    #randomly sample 1 through the final position in the data frame
+    pair<-sample(c(1:length(exactbp$ln.alpha.)),1)
+    #use this row number as the row for the alpha and beta pair to be used
+    #arguments for teh hyperg_1F1 function are alpha, alpha + beta, and -dose
+    infect[i]<-1-hyperg_1F1(exactbp$alpha[pair], exactbp$alpha[pair]+exactbp$Beta[pair], -dose[i], give=FALSE, strict=TRUE)
+    
+    #save alpha and beta used for later correlation coefficient 
+    alpha[i]<-exactbp$alpha[pair]
+    beta[i]<-exactbp$Beta[pair]
+    
+    #replace zero risks with small risk value
+    if(infect[i]==0){
+      infect[i]<-1*10^-15 #cannot have zero infection risk, so replace with small risk
     }
  }
  
+ #save inputs and outputs for later spearman corr. coeff. 
  sim.frame<-data.frame(infect=infect,dose=dose,conchand=conchand,concsurfstart=concsurfstart,concsurf=concsurf,TE.HM=TE.HM,Ahand=Ahand,
                        SH.mouth=SH.mouth,SH=SH,TE.SH=TE.SH,RNAinfective=rep(RNAinfective,iter),
                        disinfect=rep(disinfection,iter),reduce=reduce,alpha=alpha,beta=beta,A.fomite=A.fomite)
@@ -81,7 +91,7 @@ COVIDqmra<-function(disinfection=c(TRUE),iter,RNAinfective){
 SIM <- c("lowinfect_nodisinfect","highinfect_nodisinfect",
          "lowinfect_disinfect","highinfect_disinfect")   
 
-NUM.SIM <- length(SIM)     # Count the number of iterations for the automated simulations
+NUM.SIM <- length(SIM)     
 
 iter<-10000
 
@@ -158,12 +168,14 @@ ggplot(data=melted_cormat,aes(x=Var1,y=Var2,fill=value))+geom_tile()+
 View(cormat)
 
 sim.frame.all$concenstatus<-rep(NA,length(sim.frame.all$infect))
+
+#less than 1 gc/cm^2 in area we're contacting, low viral bioburden
+#1 or more gc/cm^2 in area we're contacting, high viral bioburden
 sim.frame.all$concenstatus[sim.frame.all$concsurfstart<1]<-"low"
 sim.frame.all$concenstatus[sim.frame.all$concsurfstart>=1]<-"high"
 
 sim.frame.all$RNAinfective[sim.frame.all$RNAinfective==0.01]<-"1% Infective"
 sim.frame.all$RNAinfective[sim.frame.all$RNAinfective==0.1]<-"10% Infective"
-
 
 sim.frame.all$reductionrange<-rep(NA,length(sim.frame.all$infect))
 sim.frame.all$reductionrange[sim.frame.all$reduce==0]<-"0"
@@ -181,7 +193,7 @@ ggplot(sim.frame.all)+geom_boxplot(aes(x=reductionrange,y=infect,group=interacti
   facet_wrap(~RNAinfective)+
   scale_y_continuous(trans="log10",name="Infection Risk")+
   scale_x_discrete(name=expression("Log"[10]*phantom(x)*"Reduction"))+
-  scale_fill_grey(name="Bioburden",labels=c(expression("1 to 10,000 gc/cm"^2),expression("Less than 1 gc/cm"^2)),start=0.4,end=.8)+
+  scale_fill_grey(name="Viral Bioburden",labels=c(expression("1 to 10,000 gc/cm"^2),expression("Less than 1 gc/cm"^2)),start=0.4,end=.8)+
   geom_hline(yintercept = 1e-4,linetype="dashed",size=1.5,colour="red")+
   geom_hline(yintercept = 1e-6,linetype="dashed",size=1.5,colour="orange")+
   theme_pubr()+theme_bw()+theme(axis.text=element_text(size=16),axis.title=element_text(size=16),
@@ -202,31 +214,3 @@ ggplot(sim.frame.all)+geom_boxplot(aes(x=concenstatus,y=infect,group=interaction
                                 strip.text=element_text(size=16),
                                 legend.text=element_text(size=16),
                                 legend.title=element_text(size=16))
-
-#---- exploratory plots-------------------
-
-ggplot(sim.frame.all)+stat_ecdf(aes(x=infect,group=interaction(disinfect,concenstatus),colour=disinfect,linetype=concenstatus),size=1)+
-  scale_x_continuous(trans="log10",name="Infection Risk")+
-  scale_colour_discrete(name="",labels=c("Surfaces Not Disinfected","Surfaces Disinfected"))+
-  scale_linetype_discrete(name="",labels=c(expression(">= 1 viral particle/cm"^2),expression("<1 viral particle/cm"^2)))+
-  scale_y_continuous(name="Fraction of Data")+
-  theme_pubr()+theme(legend.position = "right")
-#geom_vline(xintercept=1e-4)+
-#geom_vline(xintercept=1e-6)
-
-A<-ggplot(sim.frame.all[sim.frame.all$reduce>0,])+geom_point(aes(x=concsurf,y=infect,colour=reduce))+
-  scale_y_continuous(trans="log10",name="Infection Risk")+
-  scale_colour_continuous(name=expression("log"[10]*phantom(x)*"reduction"))+
-  scale_x_continuous(trans="log10",name=expression("Surface Concentration (viral particles/cm"^2*")"))+
-  geom_hline(yintercept=1e-4,linetype="dashed",colour="red",size=1.5)+
-  theme_pubr()+ggtitle("1/10,000 Risk Target")
-
-B<-ggplot(sim.frame.all[sim.frame.all$reduce>0,])+geom_point(aes(x=concsurf,y=infect,colour=reduce))+
-  scale_y_continuous(trans="log10",name="Infection Risk")+
-  scale_colour_continuous(name=expression("log"[10]*phantom(x)*"reduction"))+
-  scale_x_continuous(trans="log10",name=expression("Surface Concentration (viral particles/cm"^2*")"))+
-  geom_hline(yintercept=1e-6,linetype="dashed",colour="red",size=1.5)+
-  theme_pubr()+ggtitle("1/1,000,000 Risk Target")
-
-windows()
-ggarrange(A,B,common.legend = TRUE)
