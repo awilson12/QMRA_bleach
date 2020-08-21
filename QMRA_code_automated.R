@@ -179,8 +179,7 @@ sim.frame.all$RNAinfective[sim.frame.all$RNAinfective==0.1]<-"10% Infective"
 
 sim.frame.all$reductionrange<-rep(NA,length(sim.frame.all$infect))
 sim.frame.all$reductionrange[sim.frame.all$reduce==0]<-"0"
-sim.frame.all$reductionrange[sim.frame.all$reduce>0 & sim.frame.all$reduce<=1]<-"0-1"
-sim.frame.all$reductionrange[sim.frame.all$reduce>1 & sim.frame.all$reduce<=2]<-"1-2"
+sim.frame.all$reductionrange[sim.frame.all$reduce>=1 & sim.frame.all$reduce<=2]<-"1-2"
 sim.frame.all$reductionrange[sim.frame.all$reduce>2 & sim.frame.all$reduce<=3]<-"2-3"
 sim.frame.all$reductionrange[sim.frame.all$reduce>3 & sim.frame.all$reduce<=4]<-"3-4"
 sim.frame.all$reductionrange[sim.frame.all$reduce>4 & sim.frame.all$reduce<=5]<-"4-5"
