@@ -195,21 +195,21 @@ ggplot(sim.frame.all)+geom_boxplot(aes(x=reductionrange,y=infect,group=interacti
   scale_fill_grey(name="Viral Bioburden",labels=c(expression("1 to 10,000 gc/cm"^2),expression("Less than 1 gc/cm"^2)),start=0.4,end=.8)+
   geom_hline(yintercept = 1e-4,linetype="dashed",size=1.5,colour="red")+
   geom_hline(yintercept = 1e-6,linetype="dashed",size=1.5,colour="orange")+
-  theme_pubr()+theme_bw()+theme(axis.text=element_text(size=16),axis.title=element_text(size=16),
-                                strip.text=element_text(size=16),
-                                legend.text=element_text(size=16),
+  theme_pubr()+theme_bw()+theme(axis.text=element_text(size=18),axis.title=element_text(size=18),
+                                strip.text=element_text(size=18),
+                                legend.text=element_text(size=18),
                                 axis.text.x = element_text(angle = 45),
-                                legend.title=element_text(size=16))
+                                legend.title=element_text(size=18))
 
 windows()
 ggplot(sim.frame.all)+geom_boxplot(aes(x=concenstatus,y=infect,group=interaction(concenstatus,disinfect),fill=disinfect))+
   facet_wrap(~RNAinfective)+
   scale_y_continuous(trans="log10",name="Infection Risk")+
-  scale_x_discrete(name="Bioburden",labels=c(expression("1 to 10,000 gc/cm"^2),expression("Less than 1 gc/cm"^2)))+
+  scale_x_discrete(name="Viral Bioburden",labels=c(expression("1 to 10,000 gc/cm"^2),expression("Less than 1 gc/cm"^2)))+
   scale_fill_grey(name="",labels=c(expression("No log"[10]*phantom(x)*"reduction"),expression("1-5 log"[10]*phantom(x)*"reduction")),start=0.4,end=.8)+
   geom_hline(yintercept = 1e-4,linetype="dashed",size=1.5,colour="red")+
   geom_hline(yintercept = 1e-6,linetype="dashed",size=1.5,colour="orange")+
-  theme_pubr()+theme_bw()+theme(axis.text=element_text(size=16),axis.title=element_text(size=16),
-                                strip.text=element_text(size=16),
-                                legend.text=element_text(size=16),
-                                legend.title=element_text(size=16))
+  theme_pubr()+theme_bw()+theme(axis.text=element_text(size=18),axis.title=element_text(size=18),
+                                strip.text=element_text(size=18),
+                                legend.text=element_text(size=18),
+                                legend.title=element_text(size=18))
