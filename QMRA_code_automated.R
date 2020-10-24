@@ -47,10 +47,10 @@ COVIDqmra<-function(disinfection=c(TRUE),iter,RNAinfective){
   
   #adjustment after we account for fraction of our hand in contact, the fraction of virus that's infective,
   #the total area of fomites available for contact, and the log10 reduction if disinfection was used
-  concsurf<-((concsurfstart*SH*Ahand*RNAinfective)/A.fomite)/(10^reduce)
+  concsurf<-((concsurfstart*Ahand*RNAinfective)/A.fomite)/(10^reduce)
   
   #concentration on our hand due to transfer efficiency
-  conchand<-concsurf*TE.SH
+  conchand<-concsurf*TE.SH*SH
  
   #estimating dose for hand-to-mouth contact
   dose<-conchand*TE.HM*Ahand*SH.mouth
