@@ -169,7 +169,7 @@ View(cormat)
 
 sim.frame.all$concenstatus<-rep(NA,length(sim.frame.all$infect))
 
-#less than 1 gc/cm^2 in area we're contacting, low viral bioburden
+#less than 1 gc/cm^2 in area available for hand-to-surface contact, low viral bioburden
 #1 or more gc/cm^2 in area we're contacting, high viral bioburden
 sim.frame.all$concenstatus[sim.frame.all$concsurfstart<1]<-"low"
 sim.frame.all$concenstatus[sim.frame.all$concsurfstart>=1]<-"high"
